@@ -22,6 +22,8 @@ from documind.retrieval.reranker import Reranker
 from documind.retrieval.semantic import SemanticRetriever
 from documind.retrieval.trace import RetrievalTrace
 from documind.storage.vector_store import VectorStore
+from documind.verification.models import VerificationReport
+from documind.verification.verifier import EvidenceVerifier
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
@@ -41,6 +43,7 @@ class QuestionRequest(BaseModel):
         "hybrid",
         "hybrid_rerank",
     ] = "hybrid_rerank"
+    verify: bool = False
 
 
 class RetrievalResponse(BaseModel):
@@ -57,6 +60,7 @@ class QuestionResponse(BaseModel):
     answer: str
     sources: list[dict]
     retrieval_trace: RetrievalTrace | None = None
+    verification: VerificationReport | None = None
 
 
 @asynccontextmanager
@@ -81,6 +85,7 @@ async def lifespan(app: FastAPI):
         reranker=reranker,
     )
     app.state.generator = AnswerGenerator()
+    app.state.verifier = EvidenceVerifier(app.state.generator)
 
     try:
         yield
@@ -218,7 +223,6 @@ def ask_question(
             mode=request.retrieval_mode,
             document_id=request.document_id,
         )
-
     except Exception as exc:
         raise HTTPException(
             status_code=503,
@@ -230,15 +234,29 @@ def ask_question(
             request.question,
             passages,
         )
-
     except Exception as exc:
         raise HTTPException(
             status_code=502,
             detail="Answer generation unavailable",
         ) from exc
 
+    verification = None
+
+    if request.verify:
+        try:
+            verification = app.state.verifier.verify(
+                answer=answer,
+                passages=passages,
+            )
+        except Exception as exc:
+            raise HTTPException(
+                status_code=502,
+                detail="Evidence verification unavailable",
+            ) from exc
+
     return QuestionResponse(
         answer=answer,
         sources=passages,
         retrieval_trace=trace,
+        verification=verification,
     )
