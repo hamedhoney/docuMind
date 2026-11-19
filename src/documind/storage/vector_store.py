@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
@@ -60,6 +59,35 @@ class VectorStore:
                 points=points,
                 wait=True,
             )
+
+    def get_all_chunks(self) -> list[dict]:
+        chunks = []
+        offset = None
+
+        while True:
+            points, offset = self.client.scroll(
+                collection_name=self.collection,
+                limit=100,
+                offset=offset,
+                with_payload=True,
+                with_vectors=False,
+            )
+
+            for point in points:
+                if point.payload:
+                    chunks.append(
+                        {
+                            "chunk_id": point.payload["chunk_id"],
+                            "document_id": point.payload["document_id"],
+                            "page_number": point.payload["page_number"],
+                            "text": point.payload["text"],
+                        }
+                    )
+
+            if offset is None:
+                break
+
+        return chunks
 
     def close(self) -> None:
         self.client.close()

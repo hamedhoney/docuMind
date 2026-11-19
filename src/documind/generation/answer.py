@@ -8,14 +8,12 @@ from openai import OpenAI
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 load_dotenv(PROJECT_ROOT / ".env")
 
+
 class AnswerGenerator:
     def __init__(self):
         self.client = OpenAI(
             api_key=os.environ["GEMINI_API_KEY"],
-            base_url=(
-                "https://generativelanguage.googleapis.com/"
-                "v1beta/openai/"
-            ),
+            base_url=("https://generativelanguage.googleapis.com/v1beta/openai/"),
         )
 
         self.model = os.getenv(
@@ -59,8 +57,7 @@ class AnswerGenerator:
                 {
                     "role": "user",
                     "content": (
-                        f"Question:\n{question}\n\n"
-                        f"Retrieved passages:\n{context}"
+                        f"Question:\n{question}\n\nRetrieved passages:\n{context}"
                     ),
                 },
             ],

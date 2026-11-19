@@ -1,8 +1,7 @@
-
 from contextlib import asynccontextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import uuid4
 
 from fastapi import (
@@ -17,9 +16,11 @@ from documind.embeddings.encoder import EmbeddingEncoder
 from documind.generation.answer import AnswerGenerator
 from documind.ingestion.chunker import chunk_pages
 from documind.ingestion.pdf import extract_pdf
+from documind.retrieval.bm25 import BM25Retriever
+from documind.retrieval.hybrid import HybridRetriever
+from documind.retrieval.reranker import Reranker
 from documind.retrieval.semantic import SemanticRetriever
 from documind.storage.vector_store import VectorStore
-
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
@@ -32,6 +33,12 @@ class HealthResponse(BaseModel):
 class QuestionRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
     top_k: int = Field(default=5, ge=1, le=20)
+    retrieval_mode: Literal[
+        "dense",
+        "bm25",
+        "hybrid",
+        "hybrid_rerank",
+    ] = "hybrid_rerank"
 
 
 class DocumentResponse(BaseModel):
@@ -45,16 +52,27 @@ class QuestionResponse(BaseModel):
     sources: list[dict]
 
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     encoder = EmbeddingEncoder()
     store = VectorStore()
     store.initialize()
 
+    semantic = SemanticRetriever(encoder, store)
+
+    bm25 = BM25Retriever()
+    bm25.build(store.get_all_chunks())
+
+    reranker = Reranker()
+
     app.state.encoder = encoder
     app.state.store = store
-    app.state.retriever = SemanticRetriever(encoder, store)
+    app.state.bm25 = bm25
+    app.state.retriever = HybridRetriever(
+        semantic=semantic,
+        bm25=bm25,
+        reranker=reranker,
+    )
     app.state.generator = AnswerGenerator()
 
     try:
@@ -70,6 +88,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 @app.get("/")
 def root():
     return {
@@ -79,6 +98,7 @@ def root():
         "documentation": "/docs",
         "status": "running",
     }
+
 
 @app.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
@@ -137,14 +157,13 @@ def upload_document(
         )
 
     try:
-        vectors = app.state.encoder.encode(
-            [chunk.text for chunk in chunks]
-        )
+        vectors = app.state.encoder.encode([chunk.text for chunk in chunks])
 
         app.state.store.add(
             chunks,
             vectors.tolist(),
         )
+        app.state.bm25.build(app.state.store.get_all_chunks())
     except Exception as exc:
         raise HTTPException(
             status_code=503,
@@ -164,8 +183,9 @@ def ask_question(
 ) -> QuestionResponse:
     try:
         passages = app.state.retriever.search(
-            request.question,
+            query=request.question,
             top_k=request.top_k,
+            mode=request.retrieval_mode,
         )
     except Exception as exc:
         raise HTTPException(

@@ -1,4 +1,3 @@
-
 from documind.embeddings.encoder import EmbeddingEncoder
 from documind.storage.vector_store import VectorStore
 

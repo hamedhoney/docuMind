@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 
 from documind.ingestion.pdf import Page
@@ -25,17 +24,14 @@ def chunk_pages(
 
     for page in pages:
         for start in range(0, len(page.text), step):
-            text = page.text[start:start + chunk_size]
+            text = page.text[start : start + chunk_size]
 
             if not text.strip():
                 continue
 
             chunks.append(
                 Chunk(
-                    chunk_id=(
-                        f"{page.document_id}-"
-                        f"{page.page_number}-{start}"
-                    ),
+                    chunk_id=(f"{page.document_id}-{page.page_number}-{start}"),
                     document_id=page.document_id,
                     page_number=page.page_number,
                     text=text,
