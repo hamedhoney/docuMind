@@ -26,13 +26,20 @@ class BM25Retriever:
         self,
         query: str,
         top_k: int = 10,
+        document_id: str | None = None,
     ) -> list[dict]:
         if self.index is None or not tokenize(query):
             return []
 
         scores = self.index.get_scores(tokenize(query))
+
         ranked = sorted(
-            enumerate(scores),
+            (
+                (index, score)
+                for index, score in enumerate(scores)
+                if document_id is None
+                or self.chunks[index]["document_id"] == document_id
+            ),
             key=lambda item: item[1],
             reverse=True,
         )

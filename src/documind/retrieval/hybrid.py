@@ -52,6 +52,7 @@ class HybridRetriever:
         query: str,
         top_k: int = 5,
         mode: RetrievalMode = "hybrid_rerank",
+        document_id: str | None = None,
     ) -> tuple[list[dict], RetrievalTrace]:
 
         if not 1 <= top_k <= 20:
@@ -75,6 +76,7 @@ class HybridRetriever:
             dense_results = self.semantic.search(
                 query,
                 candidate_count if mode.startswith("hybrid") else top_k,
+                document_id=document_id,
             )
             timings.dense_ms = (perf_counter() - t0) * 1000
 
@@ -83,6 +85,7 @@ class HybridRetriever:
             bm25_results = self.bm25.search(
                 query,
                 candidate_count if mode.startswith("hybrid") else top_k,
+                document_id=document_id,
             )
             timings.bm25_ms = (perf_counter() - t0) * 1000
 
@@ -136,10 +139,12 @@ class HybridRetriever:
         query: str,
         top_k: int = 5,
         mode: RetrievalMode = "hybrid_rerank",
+        document_id: str | None = None,
     ) -> list[dict]:
         passages, _ = self.search_with_trace(
             query=query,
             top_k=top_k,
             mode=mode,
+            document_id=document_id,
         )
         return passages

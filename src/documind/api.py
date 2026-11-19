@@ -1,8 +1,9 @@
+import hashlib
 from contextlib import asynccontextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Annotated, Literal
-import hashlib
+
 from fastapi import (
     FastAPI,
     File,
@@ -33,6 +34,7 @@ class HealthResponse(BaseModel):
 class QuestionRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
     top_k: int = Field(default=5, ge=1, le=20)
+    document_id: str | None = None
     retrieval_mode: Literal[
         "dense",
         "bm25",
@@ -122,6 +124,7 @@ def retrieve_documents(
             query=request.question,
             top_k=request.top_k,
             mode=request.retrieval_mode,
+            document_id=request.document_id,
         )
 
     except Exception as exc:
@@ -147,7 +150,6 @@ def upload_document(
             detail="Only PDF files are supported",
         )
 
-    
     with TemporaryDirectory() as directory:
         path = Path(directory) / "document.pdf"
         total_bytes = 0
@@ -164,9 +166,7 @@ def upload_document(
 
                 output.write(block)
 
-        file_hash = hashlib.sha256(
-            path.read_bytes()
-        ).hexdigest()
+        file_hash = hashlib.sha256(path.read_bytes()).hexdigest()
 
         document_id = file_hash
 
@@ -216,6 +216,7 @@ def ask_question(
             query=request.question,
             top_k=request.top_k,
             mode=request.retrieval_mode,
+            document_id=request.document_id,
         )
 
     except Exception as exc:
