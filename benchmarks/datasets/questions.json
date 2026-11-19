@@ -1,0 +1,20 @@
+[
+  {
+    "id": "q001",
+    "question": "What is the main purpose of the Common Pile?",
+    "relevant_chunk_ids": [],
+    "category": "factual"
+  },
+  {
+    "id": "q002",
+    "question": "What licensing challenges affect dataset construction?",
+    "relevant_chunk_ids": [],
+    "category": "technical"
+  },
+  {
+    "id": "q003",
+    "question": "How does the project address data quality?",
+    "relevant_chunk_ids": [],
+    "category": "multi_passage"
+  }
+]
