@@ -7,7 +7,13 @@ def reciprocal_rank_fusion(
 
     combined: dict[str, dict] = {}
 
-    for results in result_lists:
+    for source_index, results in enumerate(result_lists):
+        source = (
+            ["dense", "bm25"][source_index]
+            if source_index < 2
+            else f"source_{source_index}"
+        )
+
         seen = set()
 
         for rank, result in enumerate(results, start=1):
@@ -26,9 +32,12 @@ def reciprocal_rank_fusion(
                 }
 
             combined[chunk_id]["rrf_score"] += 1.0 / (k + rank)
+            combined[chunk_id]["retrieved_by"].append(source)
 
     return sorted(
         combined.values(),
-        key=lambda item: item["rrf_score"],
-        reverse=True,
+        key=lambda item: (
+            -item["rrf_score"],
+            item["chunk_id"],
+        ),
     )

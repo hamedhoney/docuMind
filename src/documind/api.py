@@ -2,8 +2,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Annotated, Literal
-from uuid import uuid4
-
+import hashlib
 from fastapi import (
     FastAPI,
     File,
@@ -20,6 +19,7 @@ from documind.retrieval.bm25 import BM25Retriever
 from documind.retrieval.hybrid import HybridRetriever
 from documind.retrieval.reranker import Reranker
 from documind.retrieval.semantic import SemanticRetriever
+from documind.retrieval.trace import RetrievalTrace
 from documind.storage.vector_store import VectorStore
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
@@ -41,6 +41,10 @@ class QuestionRequest(BaseModel):
     ] = "hybrid_rerank"
 
 
+class RetrievalResponse(BaseModel):
+    trace: RetrievalTrace
+
+
 class DocumentResponse(BaseModel):
     document_id: str
     pages: int
@@ -50,6 +54,7 @@ class DocumentResponse(BaseModel):
 class QuestionResponse(BaseModel):
     answer: str
     sources: list[dict]
+    retrieval_trace: RetrievalTrace | None = None
 
 
 @asynccontextmanager
@@ -108,6 +113,26 @@ def health() -> HealthResponse:
     )
 
 
+@app.post("/retrieve", response_model=RetrievalResponse)
+def retrieve_documents(
+    request: QuestionRequest,
+) -> RetrievalResponse:
+    try:
+        _, trace = app.state.retriever.search_with_trace(
+            query=request.question,
+            top_k=request.top_k,
+            mode=request.retrieval_mode,
+        )
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Retrieval service unavailable",
+        ) from exc
+
+    return RetrievalResponse(trace=trace)
+
+
 @app.post(
     "/documents",
     response_model=DocumentResponse,
@@ -122,8 +147,7 @@ def upload_document(
             detail="Only PDF files are supported",
         )
 
-    document_id = str(uuid4())
-
+    
     with TemporaryDirectory() as directory:
         path = Path(directory) / "document.pdf"
         total_bytes = 0
@@ -139,6 +163,12 @@ def upload_document(
                     )
 
                 output.write(block)
+
+        file_hash = hashlib.sha256(
+            path.read_bytes()
+        ).hexdigest()
+
+        document_id = file_hash
 
         try:
             pages = extract_pdf(path, document_id)
@@ -182,11 +212,12 @@ def ask_question(
     request: QuestionRequest,
 ) -> QuestionResponse:
     try:
-        passages = app.state.retriever.search(
+        passages, trace = app.state.retriever.search_with_trace(
             query=request.question,
             top_k=request.top_k,
             mode=request.retrieval_mode,
         )
+
     except Exception as exc:
         raise HTTPException(
             status_code=503,
@@ -198,6 +229,7 @@ def ask_question(
             request.question,
             passages,
         )
+
     except Exception as exc:
         raise HTTPException(
             status_code=502,
@@ -207,4 +239,5 @@ def ask_question(
     return QuestionResponse(
         answer=answer,
         sources=passages,
+        retrieval_trace=trace,
     )
