@@ -1,4 +1,5 @@
 
+from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
 from qdrant_client import QdrantClient, models
@@ -9,10 +10,16 @@ from documind.ingestion.chunker import Chunk
 class VectorStore:
     def __init__(
         self,
-        url: str = "http://localhost:6333",
         collection: str = "documind",
+        storage_path: str = "./data/qdrant",
     ):
-        self.client = QdrantClient(url=url)
+        Path(storage_path).mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        # Embedded Qdrant: no Docker or server required
+        self.client = QdrantClient(path=storage_path)
         self.collection = collection
 
     def initialize(self, dimension: int = 384) -> None:
@@ -53,3 +60,6 @@ class VectorStore:
                 points=points,
                 wait=True,
             )
+
+    def close(self) -> None:
+        self.client.close()
