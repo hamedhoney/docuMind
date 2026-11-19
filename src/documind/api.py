@@ -1,8 +1,9 @@
+import hashlib
 from contextlib import asynccontextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Annotated, Literal
-import hashlib
+
 from fastapi import (
     FastAPI,
     File,
@@ -147,7 +148,6 @@ def upload_document(
             detail="Only PDF files are supported",
         )
 
-    
     with TemporaryDirectory() as directory:
         path = Path(directory) / "document.pdf"
         total_bytes = 0
@@ -164,9 +164,7 @@ def upload_document(
 
                 output.write(block)
 
-        file_hash = hashlib.sha256(
-            path.read_bytes()
-        ).hexdigest()
+        file_hash = hashlib.sha256(path.read_bytes()).hexdigest()
 
         document_id = file_hash
 
