@@ -1,0 +1,117 @@
+[
+  {
+    "id": "q001",
+    "question": "What is the primary purpose of the Common Pile?",
+    "relevant_chunk_ids": [
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-2-2720"
+    ],
+    "category": "factual",
+    "document_id": "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc",
+    "annotation_status": "candidate_needs_review",
+    "annotation_note": "strong candidate: stated contribution"
+  },
+  {
+    "id": "q002",
+    "question": "How many data sources make up the Common Pile?",
+    "relevant_chunk_ids": [
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-2-2720",
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-1-1360"
+    ],
+    "category": "factual",
+    "document_id": "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc",
+    "annotation_status": "candidate_needs_review",
+    "annotation_note": "strong candidates: 30 sources"
+  },
+  {
+    "id": "q003",
+    "question": "What types of content are included in the Common Pile?",
+    "relevant_chunk_ids": [
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-1-1360"
+    ],
+    "category": "factual",
+    "document_id": "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc",
+    "annotation_status": "candidate_needs_review",
+    "annotation_note": "strong candidate: enumerates content types"
+  },
+  {
+    "id": "q004",
+    "question": "Why is copyright licensing a challenge when constructing language model training datasets?",
+    "relevant_chunk_ids": [
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-3-1360",
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-3-2040",
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-3-3400"
+    ],
+    "category": "reasoning",
+    "document_id": "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc",
+    "annotation_status": "candidate_needs_review",
+    "annotation_note": "candidates discuss license laundering and provenance"
+  },
+  {
+    "id": "q005",
+    "question": "What is the difference between public domain and openly licensed text?",
+    "relevant_chunk_ids": [
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-3-0"
+    ],
+    "category": "conceptual",
+    "document_id": "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc",
+    "annotation_status": "candidate_needs_review",
+    "annotation_note": "candidate discusses licensing; inspect full passage for public-domain distinction"
+  },
+  {
+    "id": "q006",
+    "question": "What preprocessing steps are applied to the Common Pile before model training?",
+    "relevant_chunk_ids": [
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-6-3400"
+    ],
+    "category": "technical",
+    "document_id": "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc",
+    "annotation_status": "candidate_needs_review",
+    "annotation_note": "candidate describes removal of personal information and boilerplate; may not cover all steps"
+  },
+  {
+    "id": "q007",
+    "question": "Which language models were trained to validate the Common Pile?",
+    "relevant_chunk_ids": [
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-1-1360",
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-9-680"
+    ],
+    "category": "factual",
+    "document_id": "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc",
+    "annotation_status": "candidate_needs_review",
+    "annotation_note": "candidates mention validation models and Comma training"
+  },
+  {
+    "id": "q008",
+    "question": "How many training tokens were used for the two Comma models?",
+    "relevant_chunk_ids": [
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-9-680"
+    ],
+    "category": "factual",
+    "document_id": "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc",
+    "annotation_status": "candidate_needs_review",
+    "annotation_note": "candidate mentions Comma v0.1-1T and -2T; verify complete passage"
+  },
+  {
+    "id": "q009",
+    "question": "How does the performance of Comma models compare with similarly sized models trained on unlicensed datasets?",
+    "relevant_chunk_ids": [
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-10-0",
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-10-1360"
+    ],
+    "category": "comparison",
+    "document_id": "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc",
+    "annotation_status": "candidate_needs_review",
+    "annotation_note": "candidates discuss comparison and performance"
+  },
+  {
+    "id": "q010",
+    "question": "What resources did the authors release to support reproducibility?",
+    "relevant_chunk_ids": [
+      "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc-1-2040"
+    ],
+    "category": "factual",
+    "document_id": "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc",
+    "annotation_status": "candidate_needs_review",
+    "annotation_note": "candidate mentions training mixture and checkpoints; verify full passage"
+  }
+]

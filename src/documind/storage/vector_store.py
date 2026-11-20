@@ -10,16 +10,23 @@ class VectorStore:
     def __init__(
         self,
         collection: str = "documind",
-        storage_path: str = "./data/qdrant",
+        storage_path: str | None = None,
     ):
+        project_root = Path(__file__).resolve().parents[3]
+
+        if storage_path is None:
+            storage_path = str(
+                project_root / "data" / "qdrant"
+            )
+
         Path(storage_path).mkdir(
             parents=True,
             exist_ok=True,
         )
 
-        # Embedded Qdrant: no Docker or server required
         self.client = QdrantClient(path=storage_path)
         self.collection = collection
+
 
     def initialize(self, dimension: int = 384) -> None:
         if not self.client.collection_exists(self.collection):

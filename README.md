@@ -38,10 +38,48 @@ Run tests:
 
     uv run pytest
 
-## Project Status
 
-Early development. The initial API and
-automated testing infrastructure are available.
+## Retrieval Benchmarking
+
+DocuMind supports four retrieval strategies:
+
+1. Dense semantic retrieval
+2. BM25 keyword retrieval
+3. Hybrid retrieval with Reciprocal Rank Fusion
+4. Hybrid retrieval with cross-encoder reranking
+
+### Evaluation
+
+Dataset: The Common Pile v0.1 research paper
+
+Metrics:
+- Precision@5
+- Recall@5
+- MRR
+- nDCG@5
+- Retrieval latency
+
+### Benchmark Results
+
+![Recall@5](benchmarks/results/recall_at_5.png)
+
+![nDCG@5](benchmarks/results/ndcg_at_5.png)
+
+![MRR](benchmarks/results/mrr.png)
+
+![Latency](benchmarks/results/mean_latency_ms.png)
+
+### Reproduce
+
+```bash
+uv run python -m documind.evaluation.run \
+  --dataset benchmarks/datasets/common_pile_questions.json \
+  --output benchmarks/results/common_pile.json
+```
+
+Results are preliminary until relevance annotations
+have been manually reviewed and finalized.
+
 
 ## License
 
