@@ -31,3 +31,6 @@ jobs:
 
       - name: Test
         run: uv run pytest -v
+
+      - name: Test benchmark regression logic
+        run: uv run pytest tests/test_regression.py -v
