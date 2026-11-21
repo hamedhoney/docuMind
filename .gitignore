@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 .env.*
 !.env.example
-data/
+/data/
 *.sqlite3
 !.env.cloud.example
 .venv-cloud/
