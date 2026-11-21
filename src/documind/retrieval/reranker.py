@@ -4,6 +4,7 @@ class Reranker:
         model_name: str = ("cross-encoder/ms-marco-MiniLM-L-6-v2"),
     ):
         from sentence_transformers import CrossEncoder
+
         self.model = CrossEncoder(model_name)
 
     def rerank(

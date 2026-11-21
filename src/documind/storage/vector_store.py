@@ -31,7 +31,6 @@ class VectorStore:
             )
             self.client = QdrantClient(path=str(settings.qdrant_path))
 
-
     def initialize(self, dimension: int = 384) -> None:
         if not self.client.collection_exists(self.collection):
             self.client.create_collection(
@@ -54,7 +53,6 @@ class VectorStore:
                 field_schema=models.PayloadSchemaType.KEYWORD,
                 wait=True,
             )
-
 
     def add(
         self,

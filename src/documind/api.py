@@ -1,7 +1,5 @@
 import hashlib
 import logging
-
-logger = logging.getLogger(__name__)
 from contextlib import asynccontextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -11,10 +9,16 @@ from fastapi import (
     FastAPI,
     File,
     HTTPException,
+    Request,
     UploadFile,
 )
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 
 from documind.config import get_settings
 from documind.embeddings.encoder import create_encoder
@@ -30,7 +34,16 @@ from documind.storage.vector_store import VectorStore
 from documind.verification.models import VerificationReport
 from documind.verification.verifier import EvidenceVerifier
 
+logger = logging.getLogger(__name__)
+
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
+
+DEMO_DOCUMENT_ID = "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc"
+
+
+# --------------------------------------------------
+# Response and request models
+# --------------------------------------------------
 
 
 class HealthResponse(BaseModel):
@@ -39,15 +52,17 @@ class HealthResponse(BaseModel):
 
 
 class QuestionRequest(BaseModel):
-    question: str = Field(min_length=1, max_length=2000)
-    top_k: int = Field(default=5, ge=1, le=20)
+    question: str = Field(min_length=1, max_length=500)
+    top_k: int = Field(default=5, ge=1, le=10)
     document_id: str | None = None
+
     retrieval_mode: Literal[
         "dense",
         "bm25",
         "hybrid",
         "hybrid_rerank",
-    ] = "hybrid_rerank"
+    ] = "hybrid"
+
     verify: bool = False
 
 
@@ -66,6 +81,50 @@ class QuestionResponse(BaseModel):
     sources: list[dict]
     retrieval_trace: RetrievalTrace | None = None
     verification: VerificationReport | None = None
+
+
+# --------------------------------------------------
+# Public demo safeguards
+# --------------------------------------------------
+
+
+def validate_document_access(
+    document_id: str | None,
+) -> str | None:
+    settings = get_settings()
+
+    if settings.app_env != "cloud":
+        return document_id
+
+    if document_id is None:
+        return DEMO_DOCUMENT_ID
+
+    if document_id != DEMO_DOCUMENT_ID:
+        raise HTTPException(
+            status_code=403,
+            detail="Document unavailable in public demo",
+        )
+
+    return document_id
+
+
+def validate_retrieval_mode(
+    mode: str,
+) -> None:
+    settings = get_settings()
+
+    if mode == "hybrid_rerank" and settings.reranker_provider == "none":
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "Cross-encoder reranking is unavailable. Use hybrid retrieval instead."
+            ),
+        )
+
+
+# --------------------------------------------------
+# Application lifecycle
+# --------------------------------------------------
 
 
 @asynccontextmanager
@@ -103,6 +162,11 @@ async def lifespan(app: FastAPI):
         store.close()
 
 
+# --------------------------------------------------
+# FastAPI initialization
+# --------------------------------------------------
+
+
 app = FastAPI(
     title="DocuMind API",
     description="Explainable, self-evaluating RAG platform",
@@ -110,19 +174,56 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         get_settings().frontend_origin,
     ],
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
 
 
+# --------------------------------------------------
+# Rate limiting
+# --------------------------------------------------
+
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[],
+)
+
+app.state.limiter = limiter
+
+
+def rate_limit_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=429,
+        content={"detail": ("Rate limit exceeded. Please try again later.")},
+    )
+
+
+app.add_exception_handler(
+    RateLimitExceeded,
+    rate_limit_handler,
+)
+
+app.add_middleware(SlowAPIMiddleware)
+
+
+# --------------------------------------------------
+# Root and health
+# --------------------------------------------------
+
+
 @app.get("/")
-def root():
+def root() -> dict:
     return {
         "name": "DocuMind",
         "version": "0.1.0",
@@ -140,26 +241,46 @@ def health() -> HealthResponse:
     )
 
 
-@app.post("/retrieve", response_model=RetrievalResponse)
+# --------------------------------------------------
+# Retrieval
+# --------------------------------------------------
+
+
+@app.post(
+    "/retrieve",
+    response_model=RetrievalResponse,
+)
+@limiter.limit("15/minute")
 def retrieve_documents(
-    request: QuestionRequest,
+    request: Request,
+    body: QuestionRequest,
 ) -> RetrievalResponse:
+    document_id = validate_document_access(body.document_id)
+
+    validate_retrieval_mode(body.retrieval_mode)
+
     try:
         _, trace = app.state.retriever.search_with_trace(
-            query=request.question,
-            top_k=request.top_k,
-            mode=request.retrieval_mode,
-            document_id=request.document_id,
+            query=body.question,
+            top_k=body.top_k,
+            mode=body.retrieval_mode,
+            document_id=document_id,
         )
 
     except Exception as exc:
         logger.exception("Retrieval failed")
+
         raise HTTPException(
             status_code=503,
             detail="Retrieval service unavailable",
         ) from exc
 
     return RetrievalResponse(trace=trace)
+
+
+# --------------------------------------------------
+# Document ingestion
+# --------------------------------------------------
 
 
 @app.post(
@@ -170,14 +291,14 @@ def retrieve_documents(
 def upload_document(
     file: Annotated[UploadFile, File()],
 ) -> DocumentResponse:
-    if (
-        get_settings().app_env == "cloud"
-        and not get_settings().public_uploads_enabled
-    ):
+    settings = get_settings()
+
+    if settings.app_env == "cloud" and not settings.public_uploads_enabled:
         raise HTTPException(
             status_code=403,
             detail="Public document uploads are disabled",
         )
+
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400,
@@ -200,13 +321,20 @@ def upload_document(
 
                 output.write(block)
 
-        file_hash = hashlib.sha256(path.read_bytes()).hexdigest()
-
-        document_id = file_hash
+        document_id = hashlib.sha256(path.read_bytes()).hexdigest()
 
         try:
-            pages = extract_pdf(path, document_id)
+            pages = extract_pdf(
+                path,
+                document_id,
+            )
+
         except Exception as exc:
+            logger.warning(
+                "PDF extraction failed: %s",
+                exc,
+            )
+
             raise HTTPException(
                 status_code=400,
                 detail="Invalid or unreadable PDF document",
@@ -230,8 +358,12 @@ def upload_document(
             chunks,
             vectors.tolist(),
         )
+
         app.state.bm25.build(app.state.store.get_all_chunks())
+
     except Exception as exc:
+        logger.exception("Document indexing failed")
+
         raise HTTPException(
             status_code=503,
             detail="Document indexing unavailable",
@@ -244,18 +376,44 @@ def upload_document(
     )
 
 
-@app.post("/ask", response_model=QuestionResponse)
+# --------------------------------------------------
+# Question answering
+# --------------------------------------------------
+
+
+@app.post(
+    "/ask",
+    response_model=QuestionResponse,
+)
+@limiter.limit("5/minute")
 def ask_question(
-    request: QuestionRequest,
+    request: Request,
+    body: QuestionRequest,
 ) -> QuestionResponse:
+    settings = get_settings()
+
+    document_id = validate_document_access(body.document_id)
+
+    validate_retrieval_mode(body.retrieval_mode)
+
+    # Verification is disabled for the public demo.
+    if settings.app_env == "cloud" and body.verify:
+        raise HTTPException(
+            status_code=403,
+            detail=("Evidence verification is currently disabled in the public demo."),
+        )
+
     try:
         passages, trace = app.state.retriever.search_with_trace(
-            query=request.question,
-            top_k=request.top_k,
-            mode=request.retrieval_mode,
-            document_id=request.document_id,
+            query=body.question,
+            top_k=body.top_k,
+            mode=body.retrieval_mode,
+            document_id=document_id,
         )
+
     except Exception as exc:
+        logger.exception("Question retrieval failed")
+
         raise HTTPException(
             status_code=503,
             detail="Document retrieval unavailable",
@@ -263,10 +421,13 @@ def ask_question(
 
     try:
         answer = app.state.generator.generate(
-            request.question,
+            body.question,
             passages,
         )
+
     except Exception as exc:
+        logger.exception("Answer generation failed")
+
         raise HTTPException(
             status_code=502,
             detail="Answer generation unavailable",
@@ -274,13 +435,16 @@ def ask_question(
 
     verification = None
 
-    if request.verify:
+    if body.verify:
         try:
             verification = app.state.verifier.verify(
                 answer=answer,
                 passages=passages,
             )
+
         except Exception as exc:
+            logger.exception("Evidence verification failed")
+
             raise HTTPException(
                 status_code=502,
                 detail="Evidence verification unavailable",

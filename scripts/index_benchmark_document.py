@@ -33,7 +33,7 @@ def get_retry_delay(error: ClientError, attempt: int) -> float:
     if match:
         return float(match.group(1)) + 2.0
 
-    return min(2 ** attempt * 10, 120) + random.uniform(0, 2)
+    return min(2**attempt * 10, 120) + random.uniform(0, 2)
 
 
 def encode_with_retry(encoder, texts: list[str]):
@@ -56,10 +56,7 @@ def encode_with_retry(encoder, texts: list[str]):
 
             delay = get_retry_delay(error, attempt)
 
-            print(
-                f"Rate limit reached. "
-                f"Waiting {delay:.1f} seconds..."
-            )
+            print(f"Rate limit reached. Waiting {delay:.1f} seconds...")
 
             time.sleep(delay)
 
@@ -70,9 +67,7 @@ def main() -> None:
     if not PDF_PATH.exists():
         raise FileNotFoundError(PDF_PATH)
 
-    document_id = hashlib.sha256(
-        PDF_PATH.read_bytes()
-    ).hexdigest()
+    document_id = hashlib.sha256(PDF_PATH.read_bytes()).hexdigest()
 
     pages = extract_pdf(PDF_PATH, document_id)
     chunks = chunk_pages(pages)
@@ -88,11 +83,7 @@ def main() -> None:
 
         indexed_ids = store.get_indexed_chunk_ids(document_id)
 
-        remaining = [
-            chunk
-            for chunk in chunks
-            if chunk.chunk_id not in indexed_ids
-        ]
+        remaining = [chunk for chunk in chunks if chunk.chunk_id not in indexed_ids]
 
         print(f"Document ID: {document_id}")
         print(f"Total chunks: {len(chunks)}")
@@ -100,7 +91,7 @@ def main() -> None:
         print(f"Remaining: {len(remaining)}")
 
         for start in range(0, len(remaining), BATCH_SIZE):
-            batch = remaining[start:start + BATCH_SIZE]
+            batch = remaining[start : start + BATCH_SIZE]
 
             vectors = encode_with_retry(
                 encoder,
@@ -110,9 +101,7 @@ def main() -> None:
             store.add(batch, vectors.tolist())
 
             completed = (
-                len(chunks)
-                - len(remaining)
-                + min(start + BATCH_SIZE, len(remaining))
+                len(chunks) - len(remaining) + min(start + BATCH_SIZE, len(remaining))
             )
 
             print(f"Indexed {completed}/{len(chunks)} chunks")

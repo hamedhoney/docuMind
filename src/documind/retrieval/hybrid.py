@@ -62,9 +62,7 @@ class HybridRetriever:
             raise ValueError(f"Unknown mode: {mode}")
 
         if mode == "hybrid_rerank" and self.reranker is None:
-            raise ValueError(
-                "Cross-encoder reranking is disabled in this environment"
-            )
+            raise ValueError("Cross-encoder reranking is disabled in this environment")
 
         started = perf_counter()
         timings = RetrievalTimings()
@@ -104,9 +102,7 @@ class HybridRetriever:
         if mode.startswith("hybrid"):
             t0 = perf_counter()
 
-            fused_results = reciprocal_rank_fusion(
-                [dense_results, bm25_results]
-            )
+            fused_results = reciprocal_rank_fusion([dense_results, bm25_results])
 
             timings.fusion_ms = (perf_counter() - t0) * 1000
 
