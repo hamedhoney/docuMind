@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import RetrievalXRay from "@/components/retrieval-xray";
+import CitationExplorer from "@/components/citation-explorer";
 import {
   askQuestion,
   uploadDocument,
@@ -178,14 +179,11 @@ export default function Home() {
 
         {result && (
           <div className="space-y-6">
-            <section className="rounded-xl border border-slate-800 p-6">
-              <h2 className="mb-3 text-xl font-semibold">
-                Answer
-              </h2>
-              <p className="whitespace-pre-wrap text-slate-200">
-                {result.answer}
-              </p>
-            </section>
+            <CitationExplorer
+              key={`${question}-${result.answer}`}
+              answer={result.answer}
+              sources={result.sources}
+            />
 
             {result.retrieval_trace && (
               <RetrievalXRay trace={result.retrieval_trace} />
