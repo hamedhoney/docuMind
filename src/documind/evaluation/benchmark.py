@@ -31,12 +31,7 @@ class BenchmarkResult(BaseModel):
     latency_ms: float
 
 
-MODES = (
-    "dense",
-    "bm25",
-    "hybrid",
-    "hybrid_rerank",
-)
+MODES = ["dense", "bm25", "hybrid"]
 
 
 def run_benchmark(
@@ -53,11 +48,15 @@ def run_benchmark(
         raise ValueError("Evaluation dataset is empty")
 
     results = []
+    modes = list(MODES)
+
+    if retriever.reranker is not None:
+        modes.append("hybrid_rerank")
 
     for question in questions:
         relevant = set(question.relevant_chunk_ids)
 
-        for mode in MODES:
+        for mode in modes:
             start = perf_counter()
 
             passages = retriever.search(
@@ -85,7 +84,7 @@ def run_benchmark(
 
     summary = {}
 
-    for mode in MODES:
+    for mode in modes:
         mode_results = [result for result in results if result.mode == mode]
 
         summary[mode] = {

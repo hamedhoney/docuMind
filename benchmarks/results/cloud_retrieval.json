@@ -1,0 +1,298 @@
+{
+  "num_questions": 10,
+  "summary": {
+    "dense": {
+      "precision_at_5": 0.08,
+      "recall_at_5": 0.2833333333333333,
+      "mrr": 0.3333333333333333,
+      "ndcg_at_5": 0.28477865557768367,
+      "mean_latency_ms": 418.7663207005244
+    },
+    "bm25": {
+      "precision_at_5": 0.08,
+      "recall_at_5": 0.15,
+      "mrr": 0.15,
+      "ndcg_at_5": 0.13459758132432495,
+      "mean_latency_ms": 2.824712498113513
+    },
+    "hybrid": {
+      "precision_at_5": 0.14,
+      "recall_at_5": 0.45,
+      "mrr": 0.4,
+      "ndcg_at_5": 0.3875006699908373,
+      "mean_latency_ms": 370.7663457025774
+    }
+  },
+  "results": [
+    {
+      "question_id": "q001",
+      "mode": "dense",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 554.5593329588883
+    },
+    {
+      "question_id": "q001",
+      "mode": "bm25",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 1.8971250392496586
+    },
+    {
+      "question_id": "q001",
+      "mode": "hybrid",
+      "precision_at_5": 0.2,
+      "recall_at_5": 1.0,
+      "mrr": 0.5,
+      "ndcg_at_5": 0.6309297535714575,
+      "latency_ms": 340.5117500224151
+    },
+    {
+      "question_id": "q002",
+      "mode": "dense",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 319.0372080425732
+    },
+    {
+      "question_id": "q002",
+      "mode": "bm25",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 2.6722499751485884
+    },
+    {
+      "question_id": "q002",
+      "mode": "hybrid",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 327.49137497739866
+    },
+    {
+      "question_id": "q003",
+      "mode": "dense",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 324.14133299607784
+    },
+    {
+      "question_id": "q003",
+      "mode": "bm25",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 3.050166997127235
+    },
+    {
+      "question_id": "q003",
+      "mode": "hybrid",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 488.16170799545944
+    },
+    {
+      "question_id": "q004",
+      "mode": "dense",
+      "precision_at_5": 0.2,
+      "recall_at_5": 0.3333333333333333,
+      "mrr": 0.3333333333333333,
+      "ndcg_at_5": 0.23463936301137822,
+      "latency_ms": 517.8278330131434
+    },
+    {
+      "question_id": "q004",
+      "mode": "bm25",
+      "precision_at_5": 0.6,
+      "recall_at_5": 1.0,
+      "mrr": 0.5,
+      "ndcg_at_5": 0.7328286204777911,
+      "latency_ms": 2.659584046341479
+    },
+    {
+      "question_id": "q004",
+      "mode": "hybrid",
+      "precision_at_5": 0.6,
+      "recall_at_5": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_5": 1.0,
+      "latency_ms": 312.9179999814369
+    },
+    {
+      "question_id": "q005",
+      "mode": "dense",
+      "precision_at_5": 0.2,
+      "recall_at_5": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_5": 1.0,
+      "latency_ms": 698.9929580013268
+    },
+    {
+      "question_id": "q005",
+      "mode": "bm25",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 1.908249978441745
+    },
+    {
+      "question_id": "q005",
+      "mode": "hybrid",
+      "precision_at_5": 0.2,
+      "recall_at_5": 1.0,
+      "mrr": 0.5,
+      "ndcg_at_5": 0.6309297535714575,
+      "latency_ms": 340.6664580106735
+    },
+    {
+      "question_id": "q006",
+      "mode": "dense",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 313.3603750029579
+    },
+    {
+      "question_id": "q006",
+      "mode": "bm25",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 3.5671250079758465
+    },
+    {
+      "question_id": "q006",
+      "mode": "hybrid",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 328.8253750069998
+    },
+    {
+      "question_id": "q007",
+      "mode": "dense",
+      "precision_at_5": 0.2,
+      "recall_at_5": 0.5,
+      "mrr": 1.0,
+      "ndcg_at_5": 0.6131471927654584,
+      "latency_ms": 468.26929203234613
+    },
+    {
+      "question_id": "q007",
+      "mode": "bm25",
+      "precision_at_5": 0.2,
+      "recall_at_5": 0.5,
+      "mrr": 1.0,
+      "ndcg_at_5": 0.6131471927654584,
+      "latency_ms": 3.0909579945728183
+    },
+    {
+      "question_id": "q007",
+      "mode": "hybrid",
+      "precision_at_5": 0.2,
+      "recall_at_5": 0.5,
+      "mrr": 1.0,
+      "ndcg_at_5": 0.6131471927654584,
+      "latency_ms": 329.0284590329975
+    },
+    {
+      "question_id": "q008",
+      "mode": "dense",
+      "precision_at_5": 0.2,
+      "recall_at_5": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_5": 1.0,
+      "latency_ms": 331.612000009045
+    },
+    {
+      "question_id": "q008",
+      "mode": "bm25",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 2.7043339796364307
+    },
+    {
+      "question_id": "q008",
+      "mode": "hybrid",
+      "precision_at_5": 0.2,
+      "recall_at_5": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_5": 1.0,
+      "latency_ms": 313.171208021231
+    },
+    {
+      "question_id": "q009",
+      "mode": "dense",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 324.28566698217764
+    },
+    {
+      "question_id": "q009",
+      "mode": "bm25",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 4.119290970265865
+    },
+    {
+      "question_id": "q009",
+      "mode": "hybrid",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 601.3675410067663
+    },
+    {
+      "question_id": "q010",
+      "mode": "dense",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 335.57720796670765
+    },
+    {
+      "question_id": "q010",
+      "mode": "bm25",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 2.5780409923754632
+    },
+    {
+      "question_id": "q010",
+      "mode": "hybrid",
+      "precision_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_5": 0.0,
+      "latency_ms": 325.5215829703957
+    }
+  ]
+}
