@@ -24,7 +24,7 @@ export default function Home() {
   const [question, setQuestion] = useState("");
   const [mode, setMode] =
     useState<RetrievalMode>("hybrid");
-  const [verify, setVerify] = useState(true);
+  const [verify, setVerify] = useState(false);
   const [result, setResult] =
     useState<AskResponse | null>(null);
   const [loading, setLoading] = useState(false);
