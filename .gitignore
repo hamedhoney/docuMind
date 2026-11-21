@@ -6,7 +6,10 @@ __pycache__/
 !.env.example
 data/
 *.sqlite3
-
+!.env.cloud.example
+.venv-cloud/
+apps/web/.next/
+apps/web/node_modules/
 # C extensions
 *.so
 

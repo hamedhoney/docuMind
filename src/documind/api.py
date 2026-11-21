@@ -168,6 +168,14 @@ def retrieve_documents(
 def upload_document(
     file: Annotated[UploadFile, File()],
 ) -> DocumentResponse:
+    if (
+        get_settings().app_env == "cloud"
+        and not get_settings().public_uploads_enabled
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Public document uploads are disabled",
+        )
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400,
