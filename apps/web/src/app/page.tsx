@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import RetrievalXRay from "@/components/retrieval-xray";
 import {
   askQuestion,
   uploadDocument,
@@ -13,7 +13,6 @@ const modes: RetrievalMode[] = [
   "dense",
   "bm25",
   "hybrid",
-  "hybrid_rerank",
 ];
 
 export default function Home() {
@@ -189,39 +188,7 @@ export default function Home() {
             </section>
 
             {result.retrieval_trace && (
-              <section className="rounded-xl border border-slate-800 p-6">
-                <h2 className="mb-4 text-xl font-semibold">
-                  Retrieval X-Ray
-                </h2>
-
-                <p className="mb-4 text-slate-400">
-                  Total retrieval time:{" "}
-                  {result.retrieval_trace.timings.total_ms.toFixed(2)}
-                  {" "}ms
-                </p>
-
-                <div className="space-y-3">
-                  {result.retrieval_trace.selected.map(
-                    (chunk) => (
-                      <div
-                        key={chunk.chunk_id}
-                        className="rounded-lg bg-slate-900 p-4"
-                      >
-                        <p className="text-sm font-semibold">
-                          Rank #{chunk.rank} · Page{" "}
-                          {chunk.page_number}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-400">
-                          Score: {chunk.score.toFixed(4)}
-                        </p>
-                        <p className="mt-3 text-sm text-slate-300">
-                          {chunk.text}
-                        </p>
-                      </div>
-                    )
-                  )}
-                </div>
-              </section>
+              <RetrievalXRay trace={result.retrieval_trace} />
             )}
 
             {result.verification && (
