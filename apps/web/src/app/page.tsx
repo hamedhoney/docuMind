@@ -18,10 +18,12 @@ const modes: RetrievalMode[] = [
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
-  const [documentId, setDocumentId] = useState("");
+  const [documentId, setDocumentId] = useState(
+  "24b26eb7b9bba731af9746974c452a23f870814d31b7d55cd681b771dfe02fdc"
+);
   const [question, setQuestion] = useState("");
   const [mode, setMode] =
-    useState<RetrievalMode>("hybrid_rerank");
+    useState<RetrievalMode>("hybrid");
   const [verify, setVerify] = useState(true);
   const [result, setResult] =
     useState<AskResponse | null>(null);
