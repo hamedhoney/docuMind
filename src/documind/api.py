@@ -1,4 +1,7 @@
 import hashlib
+import logging
+
+logger = logging.getLogger(__name__)
 from contextlib import asynccontextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -13,7 +16,8 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from documind.embeddings.encoder import EmbeddingEncoder
+from documind.config import get_settings
+from documind.embeddings.encoder import create_encoder
 from documind.generation.answer import AnswerGenerator
 from documind.ingestion.chunker import chunk_pages
 from documind.ingestion.pdf import extract_pdf
@@ -66,25 +70,30 @@ class QuestionResponse(BaseModel):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    encoder = EmbeddingEncoder()
+    settings = get_settings()
+
+    encoder = create_encoder()
+
     store = VectorStore()
-    store.initialize()
+    store.initialize(dimension=encoder.dimension)
 
     semantic = SemanticRetriever(encoder, store)
 
     bm25 = BM25Retriever()
     bm25.build(store.get_all_chunks())
 
-    reranker = Reranker()
+    reranker = Reranker() if settings.reranker_provider == "local" else None
 
     app.state.encoder = encoder
     app.state.store = store
     app.state.bm25 = bm25
+
     app.state.retriever = HybridRetriever(
         semantic=semantic,
         bm25=bm25,
         reranker=reranker,
     )
+
     app.state.generator = AnswerGenerator()
     app.state.verifier = EvidenceVerifier(app.state.generator)
 
@@ -108,6 +117,7 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
+
 
 @app.get("/")
 def root():
@@ -141,6 +151,7 @@ def retrieve_documents(
         )
 
     except Exception as exc:
+        logger.exception("Retrieval failed")
         raise HTTPException(
             status_code=503,
             detail="Retrieval service unavailable",
@@ -200,7 +211,10 @@ def upload_document(
         )
 
     try:
-        vectors = app.state.encoder.encode([chunk.text for chunk in chunks])
+        vectors = app.state.encoder.encode(
+            [chunk.text for chunk in chunks],
+            task_type="RETRIEVAL_DOCUMENT",
+        )
 
         app.state.store.add(
             chunks,

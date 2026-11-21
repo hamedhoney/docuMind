@@ -1,13 +1,13 @@
 from qdrant_client import models
 
-from documind.embeddings.encoder import EmbeddingEncoder
+from documind.embeddings.encoder import Encoder
 from documind.storage.vector_store import VectorStore
 
 
 class SemanticRetriever:
     def __init__(
         self,
-        encoder: EmbeddingEncoder,
+        encoder: Encoder,
         store: VectorStore,
     ):
         self.encoder = encoder
@@ -19,7 +19,10 @@ class SemanticRetriever:
         top_k: int = 5,
         document_id: str | None = None,
     ) -> list[dict]:
-        vector = self.encoder.encode([query])[0].tolist()
+        vector = self.encoder.encode(
+            [query],
+            task_type="RETRIEVAL_QUERY",
+        )[0].tolist()
 
         query_filter = None
 

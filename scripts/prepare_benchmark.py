@@ -3,9 +3,7 @@ from pathlib import Path
 
 from documind.storage.vector_store import VectorStore
 
-dataset_path = Path(
-    "benchmarks/datasets/common_pile_questions.json"
-)
+dataset_path = Path("benchmarks/datasets/common_pile_questions.json")
 
 questions = json.loads(dataset_path.read_text())
 
@@ -21,11 +19,9 @@ try:
         keywords = question["evidence_keywords"]
 
         matches = [
-            chunk for chunk in chunks
-            if all(
-                keyword.lower() in chunk["text"].lower()
-                for keyword in keywords
-            )
+            chunk
+            for chunk in chunks
+            if all(keyword.lower() in chunk["text"].lower() for keyword in keywords)
         ]
 
         print(f"\n{question['id']}: {question['question']}")

@@ -1,31 +1,35 @@
-from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
 from qdrant_client import QdrantClient, models
 
+from documind.config import get_settings
 from documind.ingestion.chunker import Chunk
 
 
 class VectorStore:
     def __init__(
         self,
-        collection: str = "documind",
-        storage_path: str | None = None,
+        collection: str | None = None,
     ):
-        project_root = Path(__file__).resolve().parents[3]
+        settings = get_settings()
 
-        if storage_path is None:
-            storage_path = str(
-                project_root / "data" / "qdrant"
+        self.collection = collection or settings.qdrant_collection
+
+        if settings.app_env == "cloud":
+            if not (settings.qdrant_url and settings.qdrant_api_key):
+                raise ValueError("Cloud Qdrant credentials are missing")
+
+            self.client = QdrantClient(
+                url=settings.qdrant_url,
+                api_key=settings.qdrant_api_key,
+                timeout=30,
             )
-
-        Path(storage_path).mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        self.client = QdrantClient(path=storage_path)
-        self.collection = collection
+        else:
+            settings.qdrant_path.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+            self.client = QdrantClient(path=str(settings.qdrant_path))
 
 
     def initialize(self, dimension: int = 384) -> None:
@@ -37,6 +41,20 @@ class VectorStore:
                     distance=models.Distance.COSINE,
                 ),
             )
+
+        # Required for document-specific filtering in Qdrant Cloud.
+        collection_info = self.client.get_collection(
+            collection_name=self.collection,
+        )
+
+        if "document_id" not in collection_info.payload_schema:
+            self.client.create_payload_index(
+                collection_name=self.collection,
+                field_name="document_id",
+                field_schema=models.PayloadSchemaType.KEYWORD,
+                wait=True,
+            )
+
 
     def add(
         self,
@@ -66,6 +84,13 @@ class VectorStore:
                 points=points,
                 wait=True,
             )
+
+    def get_indexed_chunk_ids(self, document_id: str) -> set[str]:
+        return {
+            chunk["chunk_id"]
+            for chunk in self.get_all_chunks()
+            if chunk["document_id"] == document_id
+        }
 
     def get_all_chunks(self) -> list[dict]:
         chunks = []

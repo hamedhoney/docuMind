@@ -28,10 +28,7 @@ metrics = [
 OUTPUT.mkdir(parents=True, exist_ok=True)
 
 for metric, title in metrics:
-    values = [
-        summary[mode][metric]
-        for mode in modes
-    ]
+    values = [summary[mode][metric] for mode in modes]
 
     fig, ax = plt.subplots(figsize=(8, 5))
 

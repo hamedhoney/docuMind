@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.165.0",
+    "google-genai>=1.20.0",
     "matplotlib>=3.11.2",
     "openai>=3.55.1",
     "pydantic>=2.14.3",
@@ -18,7 +19,6 @@ dependencies = [
     "python-multipart>=0.0.34",
     "qdrant-client>=1.20.0",
     "rank-bm25>=0.2.2",
-    "sentence-transformers>=6.3.0",
     "tenacity>=9.2.1",
     "uvicorn[standard]>=0.54.0",
 ]
@@ -37,4 +37,13 @@ dev = [
     "pytest>=9.2.0",
     "pytest-asyncio>=1.5.0",
     "ruff>=0.17.5",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+
+[project.optional-dependencies]
+local-ml = [
+    "sentence-transformers>=6.3.0",
 ]

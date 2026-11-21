@@ -1,4 +1,3 @@
-
 import json
 from pathlib import Path
 from statistics import mean
@@ -70,27 +69,16 @@ def run_benchmark(
 
             latency_ms = (perf_counter() - start) * 1000
 
-            retrieved_ids = [
-                passage["chunk_id"]
-                for passage in passages
-            ]
+            retrieved_ids = [passage["chunk_id"] for passage in passages]
 
             results.append(
                 BenchmarkResult(
                     question_id=question.id,
                     mode=mode,
-                    precision_at_5=precision_at_k(
-                        retrieved_ids, relevant, 5
-                    ),
-                    recall_at_5=recall_at_k(
-                        retrieved_ids, relevant, 5
-                    ),
-                    mrr=reciprocal_rank(
-                        retrieved_ids, relevant
-                    ),
-                    ndcg_at_5=ndcg_at_k(
-                        retrieved_ids, relevant, 5
-                    ),
+                    precision_at_5=precision_at_k(retrieved_ids, relevant, 5),
+                    recall_at_5=recall_at_k(retrieved_ids, relevant, 5),
+                    mrr=reciprocal_rank(retrieved_ids, relevant),
+                    ndcg_at_5=ndcg_at_k(retrieved_ids, relevant, 5),
                     latency_ms=latency_ms,
                 )
             )
@@ -98,34 +86,20 @@ def run_benchmark(
     summary = {}
 
     for mode in MODES:
-        mode_results = [
-            result for result in results
-            if result.mode == mode
-        ]
+        mode_results = [result for result in results if result.mode == mode]
 
         summary[mode] = {
-            "precision_at_5": mean(
-                r.precision_at_5 for r in mode_results
-            ),
-            "recall_at_5": mean(
-                r.recall_at_5 for r in mode_results
-            ),
+            "precision_at_5": mean(r.precision_at_5 for r in mode_results),
+            "recall_at_5": mean(r.recall_at_5 for r in mode_results),
             "mrr": mean(r.mrr for r in mode_results),
-            "ndcg_at_5": mean(
-                r.ndcg_at_5 for r in mode_results
-            ),
-            "mean_latency_ms": mean(
-                r.latency_ms for r in mode_results
-            ),
+            "ndcg_at_5": mean(r.ndcg_at_5 for r in mode_results),
+            "mean_latency_ms": mean(r.latency_ms for r in mode_results),
         }
 
     report = {
         "num_questions": len(questions),
         "summary": summary,
-        "results": [
-            result.model_dump()
-            for result in results
-        ],
+        "results": [result.model_dump() for result in results],
     }
 
     output_path.parent.mkdir(
@@ -133,8 +107,6 @@ def run_benchmark(
         exist_ok=True,
     )
 
-    output_path.write_text(
-        json.dumps(report, indent=2)
-    )
+    output_path.write_text(json.dumps(report, indent=2))
 
     return report

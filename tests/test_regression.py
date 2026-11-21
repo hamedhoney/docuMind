@@ -1,4 +1,3 @@
-
 import json
 
 from documind.evaluation.regression import check_regression
@@ -21,13 +20,9 @@ def test_regression_detected(tmp_path):
     baseline = tmp_path / "baseline.json"
     current = tmp_path / "current.json"
 
-    baseline.write_text(
-        json.dumps(make_report(0.8))
-    )
+    baseline.write_text(json.dumps(make_report(0.8)))
 
-    current.write_text(
-        json.dumps(make_report(0.6))
-    )
+    current.write_text(json.dumps(make_report(0.6)))
 
     regressions = check_regression(
         baseline,
@@ -42,15 +37,14 @@ def test_no_regression(tmp_path):
     baseline = tmp_path / "baseline.json"
     current = tmp_path / "current.json"
 
-    baseline.write_text(
-        json.dumps(make_report(0.8))
-    )
+    baseline.write_text(json.dumps(make_report(0.8)))
 
-    current.write_text(
-        json.dumps(make_report(0.81))
-    )
+    current.write_text(json.dumps(make_report(0.81)))
 
-    assert check_regression(
-        baseline,
-        current,
-    ) == []
+    assert (
+        check_regression(
+            baseline,
+            current,
+        )
+        == []
+    )

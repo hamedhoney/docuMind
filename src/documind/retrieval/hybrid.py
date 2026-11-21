@@ -41,7 +41,7 @@ class HybridRetriever:
         self,
         semantic: SemanticRetriever,
         bm25: BM25Retriever,
-        reranker: Reranker,
+        reranker: Reranker | None = None,
     ):
         self.semantic = semantic
         self.bm25 = bm25
@@ -51,7 +51,7 @@ class HybridRetriever:
         self,
         query: str,
         top_k: int = 5,
-        mode: RetrievalMode = "hybrid_rerank",
+        mode: RetrievalMode = "hybrid",
         document_id: str | None = None,
     ) -> tuple[list[dict], RetrievalTrace]:
 
@@ -60,6 +60,11 @@ class HybridRetriever:
 
         if mode not in ("dense", "bm25", "hybrid", "hybrid_rerank"):
             raise ValueError(f"Unknown mode: {mode}")
+
+        if mode == "hybrid_rerank" and self.reranker is None:
+            raise ValueError(
+                "Cross-encoder reranking is disabled in this environment"
+            )
 
         started = perf_counter()
         timings = RetrievalTimings()
@@ -71,29 +76,41 @@ class HybridRetriever:
 
         candidate_count = max(top_k * 4, 20)
 
+        # Stage 1: Dense retrieval
         if mode != "bm25":
             t0 = perf_counter()
+
             dense_results = self.semantic.search(
                 query,
                 candidate_count if mode.startswith("hybrid") else top_k,
                 document_id=document_id,
             )
+
             timings.dense_ms = (perf_counter() - t0) * 1000
 
+        # Stage 2: BM25 retrieval
         if mode != "dense":
             t0 = perf_counter()
+
             bm25_results = self.bm25.search(
                 query,
                 candidate_count if mode.startswith("hybrid") else top_k,
                 document_id=document_id,
             )
+
             timings.bm25_ms = (perf_counter() - t0) * 1000
 
+        # Stage 3: Reciprocal Rank Fusion
         if mode.startswith("hybrid"):
             t0 = perf_counter()
-            fused_results = reciprocal_rank_fusion([dense_results, bm25_results])
+
+            fused_results = reciprocal_rank_fusion(
+                [dense_results, bm25_results]
+            )
+
             timings.fusion_ms = (perf_counter() - t0) * 1000
 
+        # Stage 4: Select or rerank results
         if mode == "dense":
             selected = dense_results[:top_k]
             score_key = "score"
@@ -107,12 +124,17 @@ class HybridRetriever:
             score_key = "rrf_score"
 
         else:
+            # Reranker is guaranteed to exist here.
+            assert self.reranker is not None
+
             t0 = perf_counter()
+
             reranked_results = self.reranker.rerank(
                 query,
                 fused_results[:candidate_count],
                 top_k=top_k,
             )
+
             timings.rerank_ms = (perf_counter() - t0) * 1000
 
             selected = reranked_results
@@ -120,6 +142,7 @@ class HybridRetriever:
 
         timings.total_ms = (perf_counter() - started) * 1000
 
+        # Build Retrieval X-Ray trace
         trace = RetrievalTrace(
             query=query,
             mode=mode,
@@ -128,7 +151,10 @@ class HybridRetriever:
             dense=ranked_chunks(dense_results, "score"),
             bm25=ranked_chunks(bm25_results, "score"),
             fusion=ranked_chunks(fused_results, "rrf_score"),
-            reranked=ranked_chunks(reranked_results, "rerank_score"),
+            reranked=ranked_chunks(
+                reranked_results,
+                "rerank_score",
+            ),
             selected=ranked_chunks(selected, score_key),
         )
 
@@ -138,7 +164,7 @@ class HybridRetriever:
         self,
         query: str,
         top_k: int = 5,
-        mode: RetrievalMode = "hybrid_rerank",
+        mode: RetrievalMode = "hybrid",
         document_id: str | None = None,
     ) -> list[dict]:
         passages, _ = self.search_with_trace(
@@ -147,4 +173,5 @@ class HybridRetriever:
             mode=mode,
             document_id=document_id,
         )
+
         return passages

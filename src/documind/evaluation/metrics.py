@@ -9,10 +9,7 @@ def precision_at_k(
     if k <= 0:
         raise ValueError("k must be positive")
 
-    return sum(
-        chunk_id in relevant
-        for chunk_id in retrieved[:k]
-    ) / k
+    return sum(chunk_id in relevant for chunk_id in retrieved[:k]) / k
 
 
 def recall_at_k(
@@ -57,9 +54,6 @@ def ndcg_at_k(
             seen.add(chunk_id)
 
     ideal_count = min(len(relevant), k)
-    idcg = sum(
-        1.0 / log2(rank + 1)
-        for rank in range(1, ideal_count + 1)
-    )
+    idcg = sum(1.0 / log2(rank + 1) for rank in range(1, ideal_count + 1))
 
     return dcg / idcg

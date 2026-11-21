@@ -1,4 +1,3 @@
-
 import pytest
 
 from documind.evaluation.metrics import (

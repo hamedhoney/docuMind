@@ -1,8 +1,7 @@
-
 import argparse
 from pathlib import Path
 
-from documind.embeddings.encoder import EmbeddingEncoder
+from documind.embeddings.encoder import create_encoder
 from documind.evaluation.benchmark import run_benchmark
 from documind.retrieval.bm25 import BM25Retriever
 from documind.retrieval.hybrid import HybridRetriever
@@ -35,7 +34,7 @@ def main():
     try:
         store.initialize()
 
-        encoder = EmbeddingEncoder()
+        encoder = create_encoder()
         semantic = SemanticRetriever(encoder, store)
 
         bm25 = BM25Retriever()

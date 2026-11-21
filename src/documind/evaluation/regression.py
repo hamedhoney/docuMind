@@ -14,9 +14,7 @@ def check_regression(
     current = json.loads(current_path.read_text())
 
     if baseline["num_questions"] != current["num_questions"]:
-        raise ValueError(
-            "Benchmark datasets have different question counts"
-        )
+        raise ValueError("Benchmark datasets have different question counts")
 
     metrics = (
         "recall_at_5",

@@ -1,4 +1,3 @@
-
 import argparse
 from pathlib import Path
 
@@ -6,24 +5,18 @@ from documind.evaluation.regression import check_regression
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Check DocuMind retrieval regressions"
-    )
+    parser = argparse.ArgumentParser(description="Check DocuMind retrieval regressions")
 
     parser.add_argument(
         "--baseline",
         type=Path,
-        default=Path(
-            "benchmarks/baselines/common_pile.json"
-        ),
+        default=Path("benchmarks/baselines/common_pile.json"),
     )
 
     parser.add_argument(
         "--current",
         type=Path,
-        default=Path(
-            "benchmarks/results/common_pile.json"
-        ),
+        default=Path("benchmarks/results/common_pile.json"),
     )
 
     parser.add_argument(
