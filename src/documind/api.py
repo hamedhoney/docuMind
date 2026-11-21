@@ -179,6 +179,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         get_settings().frontend_origin,
+        "http://localhost:3000",
     ],
     allow_credentials=False,
     allow_methods=["GET", "POST"],
